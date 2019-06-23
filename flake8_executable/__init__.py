@@ -1,3 +1,5 @@
+# Copyright (c) 2019 Hong Xu <hong@topbug.net>
+
 # This file is part of flake8-executable.
 
 # flake8-executable is free software: you can redistribute it and/or modify it
@@ -11,7 +13,7 @@
 # for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with Foobar. If not, see <https://www.gnu.org/licenses/>.
+# along with flake8-executable. If not, see <https://www.gnu.org/licenses/>.
 
 from collections import namedtuple
 import os
