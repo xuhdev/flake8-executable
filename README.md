@@ -1,6 +1,7 @@
 # flake8-executable
 
-[![Pyversions](https://img.shields.io/pypi/pyversions/ibm-analytics-engine-python.svg?style=flat-square)](https://pypi.python.org/pypi/flake8-executable)
+[![Pyversions](https://img.shields.io/pypi/pyversions/flake8-executable.svg?style=flat-square)](https://pypi.python.org/pypi/flake8-executable)
+![PyPI](https://img.shields.io/pypi/v/flake8-executable.svg)
 [![Build Status](https://travis-ci.org/xuhdev/flake8-executable.svg?branch=master)](https://travis-ci.org/xuhdev/flake8-executable)
 
 Very often, developers mess up the executable permission of Python files: Sometimes the executable
