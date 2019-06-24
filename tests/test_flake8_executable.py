@@ -20,7 +20,7 @@ import unittest
 
 from parameterized import parameterized
 
-from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003
+from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004
 
 
 class Flake8ExecutableTestCase(unittest.TestCase):
@@ -40,7 +40,8 @@ class Flake8ExecutableTestCase(unittest.TestCase):
     @parameterized.expand([
         (EXE001(), 'exe001'),
         (EXE002(), 'exe002'),
-        (EXE003(shebang='#!/bin/bash'), 'exe003')])
+        (EXE003(shebang='#!/bin/bash'), 'exe003'),
+        (EXE004(offset=4), 'exe004')])
     def test_exe_positive(self, error, error_code):
         "Test cases in which an error should be reported."
         filename = __class__._get_pos_filename(error_code)
@@ -51,7 +52,8 @@ class Flake8ExecutableTestCase(unittest.TestCase):
     @parameterized.expand([
         'exe001',
         'exe002',
-        'exe003'])
+        'exe003',
+        'exe004'])
     def test_exe_negative(self, error_code):
         "Test cases in which no error should be reported."
         filename = __class__._get_neg_filename(error_code)
@@ -67,7 +69,8 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         return tuple(ec.run())
 
     @parameterized.expand([
-        (EXE003(shebang='#!/bin/bash'), 'exe003')])
+        (EXE003(shebang='#!/bin/bash'), 'exe003'),
+        (EXE004(offset=4), 'exe004')])
     def test_stdin_positive(self, error, error_code):
         "Test case in which an error should be reported (input is stdin)."
         filename = __class__._get_pos_filename(error_code)
@@ -77,7 +80,8 @@ class Flake8ExecutableTestCase(unittest.TestCase):
     @parameterized.expand([
         'exe001',
         'exe002',
-        'exe003'])
+        'exe003',
+        'exe004'])
     def test_stdin_negative(self, error_code):
         "Test cases in which no error should be reported (input is stdin)."
         filename = __class__._get_neg_filename(error_code)

@@ -17,6 +17,7 @@
 
 from abc import ABC
 import os
+import re
 
 from .version import __version__
 
@@ -67,8 +68,12 @@ class EXE002(Error):
 
 class EXE003(Error):
     def __init__(self, shebang, **kwargs):
-        super().__init__(0, 0, 'EXE003',
-                         'Shebang is present but does not contain "python": ' + shebang, '')
+        super().__init__(0, 0, 'EXE003', 'Shebang is present but does not contain "python": ' + shebang, '')
+
+
+class EXE004(Error):
+    def __init__(self, offset, **kwargs):
+        super().__init__(0, offset, 'EXE004', 'There is whitespace before shebang.', '')
 
 
 class ExecutableChecker:
@@ -87,7 +92,14 @@ class ExecutableChecker:
             with open(self.filename) as f:
                 first_line = f.readline()
 
-        has_shebang = first_line.startswith('#!')
+        m = re.match(r'(\s*)#!', first_line)
+        if m:
+            has_shebang = True
+            if m.group(1):
+                if EXE004.should_check():
+                    yield EXE004(len(m.group(1)))()
+        else:
+            has_shebang = False
         is_executable = os.access(self.filename, os.X_OK)
         if has_shebang:
             if not is_executable:
