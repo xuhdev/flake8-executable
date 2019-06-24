@@ -49,5 +49,6 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         errors = tuple(ec.run())
         self.assertFalse(errors)  # errors should be empty
 
+
 if __name__ == "__main__":
     unittest.main()
