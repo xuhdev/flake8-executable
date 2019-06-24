@@ -32,7 +32,7 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         (exe002, 'exe002', {}),
         (exe003, 'exe003', {'shebang': '#!/bin/bash'})])
     def test_exe_positive(self, error, error_code, params):
-        "Test EXE001, EXE002 and EXE003 cases in which an error should be reported."
+        "Test cases in which an error should be reported."
         filename = Path(__file__).absolute().parent / (__class__._python_files_folder + error_code + '_pos.py')
         ec = ExecutableChecker(filename=str(filename))
         errors = tuple(ec.run())
@@ -43,25 +43,44 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         'exe002',
         'exe003'])
     def test_exe_negative(self, error_code):
-        "Test EXE001, EXE002 and EXE003 cases in which no error should be reported."
+        "Test cases in which no error should be reported."
         filename = Path(__file__).absolute().parent / (__class__._python_files_folder + error_code + '_neg.py')
         ec = ExecutableChecker(filename=str(filename))
         errors = tuple(ec.run())
         self.assertFalse(errors)  # errors should be empty
 
-    def test_stdin_positive(self):
-        """When the input is from stdin, EXE003 should be emitted if it should be in
-        case the input is a regular file in the file system.
-        """
-        shebang = '#!/bin/bash'
-        ec = ExecutableChecker(filename='-', lines=[shebang])
-        errors = tuple(ec.run())
-        self.assertEqual(errors, (exe003(shebang=shebang),))
+    @staticmethod
+    def _run_checker_stdin_from_file(filename):
+        with open(filename) as f:
+            lines = f.readlines()
+        ec = ExecutableChecker(filename='-', lines=lines)
+        return tuple(ec.run())
 
-    def test_stdin_negative(self):
-        "Test that EXE001 and EXE002 are not emitted when the input is from stdin."
-        ec = ExecutableChecker(filename='-', lines=['#!/usr/bin/python'])
-        errors = tuple(ec.run())
+    @parameterized.expand([
+        (exe003, 'exe003', {'shebang': '#!/bin/bash'})])
+    def test_stdin_positive(self, error, error_code, params):
+        "Test case in which an error should be reported (input is stdin)."
+        filename = Path(__file__).absolute().parent / (__class__._python_files_folder + error_code + '_pos.py')
+        errors = __class__._run_checker_stdin_from_file(filename)
+        self.assertEqual(errors, (error(**params),))
+
+    @parameterized.expand([
+        'exe001',
+        'exe002',
+        'exe003'])
+    def test_stdin_negative(self, error_code):
+        "Test cases in which no error should be reported (input is stdin)."
+        filename = Path(__file__).absolute().parent / (__class__._python_files_folder + error_code + '_neg.py')
+        errors = __class__._run_checker_stdin_from_file(filename)
+        self.assertFalse(errors)  # errors should be empty
+
+    @parameterized.expand([
+        'exe001',
+        'exe002'])
+    def test_stdin_negative_otherwise_positive(self, error_code):
+        "Test errors that should not be emitted when the input is from stdin, even if they should be otherwise emitted."
+        filename = Path(__file__).absolute().parent / (__class__._python_files_folder + error_code + '_pos.py')
+        errors = __class__._run_checker_stdin_from_file(filename)
         self.assertFalse(errors)  # errors should be empty
 
 
