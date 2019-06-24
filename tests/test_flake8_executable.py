@@ -20,7 +20,7 @@ import unittest
 
 from parameterized import parameterized
 
-from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004
+from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004, EXE005
 
 
 class Flake8ExecutableTestCase(unittest.TestCase):
@@ -38,10 +38,11 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         return cls._python_files_folder / (error_code + '_neg.py')
 
     @parameterized.expand([
-        (EXE001(), 'exe001'),
+        (EXE001(line_number=1), 'exe001'),
         (EXE002(), 'exe002'),
-        (EXE003(shebang='#!/bin/bash'), 'exe003'),
-        (EXE004(offset=4), 'exe004')])
+        (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
+        (EXE004(line_number=1, offset=4), 'exe004'),
+        (EXE005(line_number=3), 'exe005')])
     def test_exe_positive(self, error, error_code):
         "Test cases in which an error should be reported."
         filename = __class__._get_pos_filename(error_code)
@@ -53,7 +54,8 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         'exe001',
         'exe002',
         'exe003',
-        'exe004'])
+        'exe004',
+        'exe005'])
     def test_exe_negative(self, error_code):
         "Test cases in which no error should be reported."
         filename = __class__._get_neg_filename(error_code)
@@ -69,8 +71,9 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         return tuple(ec.run())
 
     @parameterized.expand([
-        (EXE003(shebang='#!/bin/bash'), 'exe003'),
-        (EXE004(offset=4), 'exe004')])
+        (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
+        (EXE004(line_number=1, offset=4), 'exe004'),
+        (EXE005(line_number=3), 'exe005')])
     def test_stdin_positive(self, error, error_code):
         "Test case in which an error should be reported (input is stdin)."
         filename = __class__._get_pos_filename(error_code)
@@ -81,7 +84,8 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         'exe001',
         'exe002',
         'exe003',
-        'exe004'])
+        'exe004',
+        'exe005'])
     def test_stdin_negative(self, error_code):
         "Test cases in which no error should be reported (input is stdin)."
         filename = __class__._get_neg_filename(error_code)

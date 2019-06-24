@@ -47,8 +47,8 @@ class Error(ABC):
 
 
 class EXE001(Error):
-    def __init__(self, **kwargs):
-        super().__init__(0, 0, 'EXE001', 'Shebang is present but the file is not executable.', '')
+    def __init__(self, line_number, **kwargs):
+        super().__init__(line_number, 0, 'EXE001', 'Shebang is present but the file is not executable.', '')
 
     @classmethod
     def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
@@ -67,13 +67,18 @@ class EXE002(Error):
 
 
 class EXE003(Error):
-    def __init__(self, shebang, **kwargs):
-        super().__init__(0, 0, 'EXE003', 'Shebang is present but does not contain "python": ' + shebang, '')
+    def __init__(self, line_number, shebang, **kwargs):
+        super().__init__(line_number, 0, 'EXE003', 'Shebang is present but does not contain "python": ' + shebang, '')
 
 
 class EXE004(Error):
-    def __init__(self, offset, **kwargs):
-        super().__init__(0, offset, 'EXE004', 'There is whitespace before shebang.', '')
+    def __init__(self, line_number, offset, **kwargs):
+        super().__init__(line_number, offset, 'EXE004', 'There is whitespace before shebang.', '')
+
+
+class EXE005(Error):
+    def __init__(self, line_number, **kwargs):
+        super().__init__(line_number, 0, 'EXE005', 'There are blank or comment lines before shebang.', '')
 
 
 class ExecutableChecker:
@@ -85,30 +90,38 @@ class ExecutableChecker:
         self.lines = lines
 
     def run(self):
-        # Get first line
-        if self.lines:
-            first_line = self.lines[0]
-        else:
+        # Get lines
+        if not self.lines:
             with open(self.filename) as f:
-                first_line = f.readline()
+                self.lines = f.readlines()
 
-        m = re.match(r'(\s*)#!', first_line)
-        if m:
-            has_shebang = True
-            if m.group(1):
-                if EXE004.should_check():
-                    yield EXE004(len(m.group(1)))()
-        else:
-            has_shebang = False
+        shebang_lineno = None
+        for i, line in enumerate(self.lines, 1):
+            m = re.match(r'(\s*)#!', line)
+            if m:  # shebang found
+                shebang_lineno = i
+                shebang_line = line
+                if m.group(1):
+                    if EXE004.should_check():
+                        yield EXE004(line_number=shebang_lineno, offset=len(m.group(1)))()
+                break
+
+            line = line.strip()
+            if len(line) != 0 and not line.startswith('#'):  # neither blank or comment line
+                break
+
         is_executable = os.access(self.filename, os.X_OK)
-        if has_shebang:
+        if shebang_lineno is not None:
             if not is_executable:
                 if EXE001.should_check(filename=self.filename):
-                    yield EXE001()()
-            if 'python' not in first_line:
+                    yield EXE001(line_number=shebang_lineno)()
+            if 'python' not in shebang_line:
                 if EXE003.should_check():
-                    yield EXE003(shebang=first_line.strip())()
-        elif not has_shebang and is_executable:
+                    yield EXE003(line_number=shebang_lineno, shebang=shebang_line.strip())()
+            if shebang_lineno > 1:
+                if EXE005.should_check():
+                    yield EXE005(line_number=shebang_lineno)()
+        elif is_executable:
             # In principle, this error may also be yielded on empty
             # files, but flake8 seems to always skip empty files.
             if EXE002.should_check(filename=self.filename):

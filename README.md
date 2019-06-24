@@ -14,6 +14,7 @@ correctly set. Specifically, it checks the following errors:
 - EXE002: The file is executable but no shebang is present.
 - EXE003: Shebang is present but does not contain "python".
 - EXE004: There is whitespace before shebang.
+- EXE005: There are blank or comment lines before shebang.
 
 ## Installation
 
