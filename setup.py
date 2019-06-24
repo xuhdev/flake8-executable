@@ -26,7 +26,7 @@ with open('README.md') as f:
 setup(
     name="flake8-executable",
     version=__version__,
-    description="A Flake8 plugin for finding files that have their executable permission messed",
+    description="A Flake8 plugin for checking executable permissions and shebangs.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords="flake8 linter qa",
