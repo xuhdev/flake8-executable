@@ -24,27 +24,28 @@ from .version import __version__
 class Error(ABC):
     "Base class of all errors."
 
-    def __init__(self, line_number, offset, message, check):
+    def __init__(self, line_number, offset, error_code, message, check):
         self.line_number = line_number
         self.offset = offset
+        self.error_code = error_code
         self.message = message
         self.check = check
 
     @staticmethod
-    def format_flake8(line_number, offset, message, check):
+    def format_flake8(line_number, error_code, offset, message, check):
         "Return a format of that Flake8 accepts."
-        return line_number, offset, message, check
+        return line_number, offset, '{} {}'.format(error_code, message), check
 
     def __call__(self, **kwargs):
         """Return a format of this error that Flake8 accepts. Override this method to incorporate variables, such as line
         numbers, during runtime.
         """
-        return __class__.format_flake8(self.line_number, self.offset, self.message, self.check)
+        return __class__.format_flake8(self.line_number, self.error_code, self.offset, self.message, self.check)
 
 
 class EXE001(Error):
     def __init__(self):
-        super().__init__(0, 0, ('EXE001' ' Shebang is present but the file is not executable.'), '')
+        super().__init__(0, 0, 'EXE001', 'Shebang is present but the file is not executable.', '')
 
 
 exe001 = EXE001()
@@ -52,7 +53,7 @@ exe001 = EXE001()
 
 class EXE002(Error):
     def __init__(self):
-        super().__init__(0, 0, ('EXE002' ' The file is executable but no shebang is present.'), '')
+        super().__init__(0, 0, 'EXE002', 'The file is executable but no shebang is present.', '')
 
 
 exe002 = EXE002()
