@@ -24,7 +24,7 @@ from .version import __version__
 class Error(ABC):
     "Base class of all errors."
 
-    def __init__(self, line_number, offset, error_code, message, check):
+    def __init__(self, line_number, offset, error_code, message, check, **kwargs):
         self.line_number = line_number
         self.offset = offset
         self.error_code = error_code
@@ -36,51 +36,39 @@ class Error(ABC):
         "Return a format of that Flake8 accepts."
         return line_number, offset, '{} {}'.format(error_code, message), check
 
-    def __call__(self, **kwargs):
-        """Return a format of this error that Flake8 accepts. Override this method to incorporate variables, such as line
-        numbers, during runtime.
-        """
+    def __call__(self):
         return __class__.format_flake8(self.line_number, self.error_code, self.offset, self.message, self.check)
 
-    def should_check(self, **kwargs) -> bool:
+    @classmethod
+    def should_check(cls, **kwargs) -> bool:
         "Whether this error should be checked."
         return True
 
 
 class EXE001(Error):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__(0, 0, 'EXE001', 'Shebang is present but the file is not executable.', '')
 
-    def should_check(self, filename, **kwargs) -> bool:  # noqa: T484
+    @classmethod
+    def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
         # Do not check on Windows or the input is not a file in the filesystem.
         return os.name != 'nt' and filename is not None and filename != '-'
-
-
-exe001 = EXE001()
 
 
 class EXE002(Error):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__(0, 0, 'EXE002', 'The file is executable but no shebang is present.', '')
 
-    def should_check(self, filename, **kwargs) -> bool:  # noqa: T484
+    @classmethod
+    def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
         # Do not check on Windows or the input is not a file in the filesystem.
         return os.name != 'nt' and filename is not None and filename != '-'
 
 
-exe002 = EXE002()
-
-
 class EXE003(Error):
-    def __init__(self):
-        super().__init__(0, 0, 'EXE003', 'Shebang is present but does not contain "python"', '')
-
-    def __call__(self, shebang, **kwargs):
-        return __class__.format_flake8(self.line_number, self.error_code, self.offset,
-                                       '{}: {}'.format(self.message, shebang), self.check)
-
-
-exe003 = EXE003()
+    def __init__(self, shebang, **kwargs):
+        super().__init__(0, 0, 'EXE003',
+                         'Shebang is present but does not contain "python": ' + shebang, '')
 
 
 class ExecutableChecker:
@@ -103,13 +91,13 @@ class ExecutableChecker:
         is_executable = os.access(self.filename, os.X_OK)
         if has_shebang:
             if not is_executable:
-                if exe001.should_check(filename=self.filename):
-                    yield exe001()
+                if EXE001.should_check(filename=self.filename):
+                    yield EXE001()()
             if 'python' not in first_line:
-                if exe003.should_check():
-                    yield exe003(first_line.strip())
+                if EXE003.should_check():
+                    yield EXE003(shebang=first_line.strip())()
         elif not has_shebang and is_executable:
             # In principle, this error may also be yielded on empty
             # files, but flake8 seems to always skip empty files.
-            if exe002.should_check(filename=self.filename):
-                yield exe002()
+            if EXE002.should_check(filename=self.filename):
+                yield EXE002()()

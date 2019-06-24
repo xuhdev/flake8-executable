@@ -20,7 +20,7 @@ import unittest
 
 from parameterized import parameterized
 
-from flake8_executable import ExecutableChecker, exe001, exe002, exe003
+from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003
 
 
 class Flake8ExecutableTestCase(unittest.TestCase):
@@ -38,15 +38,15 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         return cls._python_files_folder / (error_code + '_neg.py')
 
     @parameterized.expand([
-        (exe001, 'exe001', {}),
-        (exe002, 'exe002', {}),
-        (exe003, 'exe003', {'shebang': '#!/bin/bash'})])
-    def test_exe_positive(self, error, error_code, params):
+        (EXE001(), 'exe001'),
+        (EXE002(), 'exe002'),
+        (EXE003(shebang='#!/bin/bash'), 'exe003')])
+    def test_exe_positive(self, error, error_code):
         "Test cases in which an error should be reported."
         filename = __class__._get_pos_filename(error_code)
         ec = ExecutableChecker(filename=str(filename))
         errors = tuple(ec.run())
-        self.assertEqual(errors, (error(**params),))
+        self.assertEqual(errors, (error(),))
 
     @parameterized.expand([
         'exe001',
@@ -67,12 +67,12 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         return tuple(ec.run())
 
     @parameterized.expand([
-        (exe003, 'exe003', {'shebang': '#!/bin/bash'})])
-    def test_stdin_positive(self, error, error_code, params):
+        (EXE003(shebang='#!/bin/bash'), 'exe003')])
+    def test_stdin_positive(self, error, error_code):
         "Test case in which an error should be reported (input is stdin)."
         filename = __class__._get_pos_filename(error_code)
         errors = __class__._run_checker_stdin_from_file(filename)
-        self.assertEqual(errors, (error(**params),))
+        self.assertEqual(errors, (error(),))
 
     @parameterized.expand([
         'exe001',
