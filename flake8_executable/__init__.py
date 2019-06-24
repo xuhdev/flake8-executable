@@ -51,7 +51,7 @@ class EXE001(Error):
     def __init__(self):
         super().__init__(0, 0, 'EXE001', 'Shebang is present but the file is not executable.', '')
 
-    def should_check(self, filename, **kwargs) -> bool:
+    def should_check(self, filename, **kwargs) -> bool:  # noqa: T484
         # Do not check on Windows or the input is not a file in the filesystem.
         return os.name != 'nt' and filename is not None and filename != '-'
 
@@ -63,7 +63,7 @@ class EXE002(Error):
     def __init__(self):
         super().__init__(0, 0, 'EXE002', 'The file is executable but no shebang is present.', '')
 
-    def should_check(self, filename, **kwargs) -> bool:
+    def should_check(self, filename, **kwargs) -> bool:  # noqa: T484
         # Do not check on Windows or the input is not a file in the filesystem.
         return os.name != 'nt' and filename is not None and filename != '-'
 
