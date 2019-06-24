@@ -35,7 +35,7 @@ setup(
     url="https://github.com/xuhdev/flake8-executable",
     license='LGPL v3+',
     packages=["flake8_executable"],
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     install_requires=["flake8 >= 3.0.0"],
     test_suite="tests.test_flake8_executable",
     classifiers=[
@@ -46,7 +46,6 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3 :: Only",

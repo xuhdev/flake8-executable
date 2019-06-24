@@ -8,9 +8,6 @@ script: python setup.py test
 
 matrix:
     include:
-      - name: "Python 3.5"
-        dist: trusty
-        python: "3.5"
       - name: "Python 3.6"
         dist: trusty
         python: "3.6"
