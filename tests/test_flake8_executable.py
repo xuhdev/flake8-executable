@@ -49,6 +49,21 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         errors = tuple(ec.run())
         self.assertFalse(errors)  # errors should be empty
 
+    def test_stdin_positive(self):
+        """When the input is from stdin, EXE003 should be emitted if it should be in
+        case the input is a regular file in the file system.
+        """
+        shebang = '#!/bin/bash'
+        ec = ExecutableChecker(filename='-', lines=[shebang])
+        errors = tuple(ec.run())
+        self.assertEqual(errors, (exe003(shebang=shebang),))
+
+    def test_stdin_negative(self):
+        "Test that EXE001 and EXE002 are not emitted when the input is from stdin."
+        ec = ExecutableChecker(filename='-', lines=['#!/usr/bin/python'])
+        errors = tuple(ec.run())
+        self.assertFalse(errors)  # errors should be empty
+
 
 if __name__ == "__main__":
     unittest.main()
