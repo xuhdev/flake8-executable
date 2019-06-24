@@ -4,18 +4,19 @@
 ![PyPI](https://img.shields.io/pypi/v/flake8-executable.svg)
 [![Build Status](https://travis-ci.org/xuhdev/flake8-executable.svg?branch=master)](https://travis-ci.org/xuhdev/flake8-executable)
 
-Very often, developers mess up the executable permission of Python files: Sometimes the executable
-permission was accidentally granted, sometimes it is forgotten.
+Very often, developers mess up the executable permissions and shebangs of Python files. For example,
+sometimes the executable permission was accidentally granted, sometimes it is forgotten.
 
-This is a [Flake8][] plugin that ensures the executable permission of Python files is correctly
-granted. Specifically, it checks the following two errors:
+This is a [Flake8][] plugin that ensures the executable permissions and shebangs of Python files are
+correctly set. Specifically, it checks the following errors:
 
 - EXE001: Shebang is present but the file is not executable.
 - EXE002: The file is executable but no shebang is present.
+- EXE003: Shebang is present but does not contain "python".
 
 ## Installation
 
-Simply run:
+Run:
 
     pip install flake8-executable
 

@@ -59,6 +59,18 @@ class EXE002(Error):
 exe002 = EXE002()
 
 
+class EXE003(Error):
+    def __init__(self):
+        super().__init__(0, 0, 'EXE003', 'Shebang is present but does not contain "python".', '')
+
+    def __call__(self, shebang, **kwargs):
+        return __class__.format_flake8(self.line_number, self.error_code, self.offset,
+                                       '{}: {}'.format(self.message, shebang), self.check)
+
+
+exe003 = EXE003()
+
+
 class ExecutableChecker:
     name = 'flake8-executable'
     version = __version__
@@ -81,8 +93,11 @@ class ExecutableChecker:
 
         has_shebang = first_line.startswith('#!')
         is_executable = os.access(self.filename, os.X_OK)
-        if has_shebang and not is_executable:
-            yield exe001()
+        if has_shebang:
+            if not is_executable:
+                yield exe001()
+            if 'python' not in first_line:
+                yield exe003(first_line.strip())
         elif not has_shebang and is_executable:
             # In principle, this error may also be yielded on empty
             # files, but flake8 seems to always skip empty files.
