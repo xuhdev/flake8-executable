@@ -15,15 +15,47 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with flake8-executable. If not, see <https://www.gnu.org/licenses/>.
 
-from collections import namedtuple
+from abc import ABC
 import os
 
 from .version import __version__
 
-Error = namedtuple('Error', ['line_number', 'offset', 'message', 'check'])
 
-EXE001 = Error(0, 0, ('EXE001' ' Shebang is present but the file is not executable.'), '')
-EXE002 = Error(0, 0, ('EXE002' ' The file is executable but no shebang is present.'), '')
+class Error(ABC):
+    "Base class of all errors."
+
+    def __init__(self, line_number, offset, message, check):
+        self.line_number = line_number
+        self.offset = offset
+        self.message = message
+        self.check = check
+
+    @staticmethod
+    def format_flake8(line_number, offset, message, check):
+        "Return a format of that Flake8 accepts."
+        return line_number, offset, message, check
+
+    def __call__(self, **kwargs):
+        """Return a format of this error that Flake8 accepts. Override this method to incorporate variables, such as line
+        numbers, during runtime.
+        """
+        return __class__.format_flake8(self.line_number, self.offset, self.message, self.check)
+
+
+class EXE001(Error):
+    def __init__(self):
+        super().__init__(0, 0, ('EXE001' ' Shebang is present but the file is not executable.'), '')
+
+
+exe001 = EXE001()
+
+
+class EXE002(Error):
+    def __init__(self):
+        super().__init__(0, 0, ('EXE002' ' The file is executable but no shebang is present.'), '')
+
+
+exe002 = EXE002()
 
 
 class ExecutableChecker:
@@ -49,8 +81,8 @@ class ExecutableChecker:
         has_shebang = first_line.startswith('#!')
         is_executable = os.access(self.filename, os.X_OK)
         if has_shebang and not is_executable:
-            yield EXE001
+            yield exe001()
         elif not has_shebang and is_executable:
             # In principle, this error may also be yielded on empty
             # files, but flake8 seems to always skip empty files.
-            yield EXE002
+            yield exe002()
