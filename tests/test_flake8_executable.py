@@ -15,15 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with flake8-executable. If not, see <https://www.gnu.org/licenses/>.
 
-from pathlib import Path
-import unittest
 
-from parameterized import parameterized
+from pathlib import Path
+
+import pytest
 
 from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004, EXE005
 
 
-class Flake8ExecutableTestCase(unittest.TestCase):
+class TestFlake8Executable:
 
     _python_files_folder = Path(__file__).absolute().parent / 'to-be-tested'
 
@@ -37,7 +37,7 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         "Get the filename for which an error of error_code should not be emitted."
         return cls._python_files_folder / (error_code + '_neg.py')
 
-    @parameterized.expand([
+    @pytest.mark.parametrize("error, error_code", [
         (EXE001(line_number=1), 'exe001'),
         (EXE002(), 'exe002'),
         (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
@@ -48,9 +48,9 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         filename = __class__._get_pos_filename(error_code)
         ec = ExecutableChecker(filename=str(filename))
         errors = tuple(ec.run())
-        self.assertEqual(errors, (error(),))
+        assert errors == (error(),)
 
-    @parameterized.expand([
+    @pytest.mark.parametrize("error_code", [
         'exe001',
         'exe002',
         'exe003',
@@ -61,7 +61,7 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         filename = __class__._get_neg_filename(error_code)
         ec = ExecutableChecker(filename=str(filename))
         errors = tuple(ec.run())
-        self.assertFalse(errors)  # errors should be empty
+        assert not errors  # errors should be empty
 
     @staticmethod
     def _run_checker_stdin_from_file(filename):
@@ -70,7 +70,7 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         ec = ExecutableChecker(filename='-', lines=lines)
         return tuple(ec.run())
 
-    @parameterized.expand([
+    @pytest.mark.parametrize("error, error_code", [
         (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
         (EXE004(line_number=1, offset=4), 'exe004'),
         (EXE005(line_number=3), 'exe005')])
@@ -78,9 +78,9 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         "Test case in which an error should be reported (input is stdin)."
         filename = __class__._get_pos_filename(error_code)
         errors = __class__._run_checker_stdin_from_file(filename)
-        self.assertEqual(errors, (error(),))
+        assert errors == (error(),)
 
-    @parameterized.expand([
+    @pytest.mark.parametrize("error_code", [
         'exe001',
         'exe002',
         'exe003',
@@ -90,17 +90,17 @@ class Flake8ExecutableTestCase(unittest.TestCase):
         "Test cases in which no error should be reported (input is stdin)."
         filename = __class__._get_neg_filename(error_code)
         errors = __class__._run_checker_stdin_from_file(filename)
-        self.assertFalse(errors)  # errors should be empty
+        assert not errors  # errors should be empty
 
-    @parameterized.expand([
+    @pytest.mark.parametrize("error_code", [
         'exe001',
         'exe002'])
     def test_stdin_negative_otherwise_positive(self, error_code):
         "Test errors that should not be emitted when the input is from stdin, even if they should be otherwise emitted."
         filename = __class__._get_pos_filename(error_code)
         errors = __class__._run_checker_stdin_from_file(filename)
-        self.assertFalse(errors)  # errors should be empty
+        assert not errors  # errors should be empty
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main([__file__])

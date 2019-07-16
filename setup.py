@@ -38,7 +38,6 @@ setup(
     data_files=[("", ["COPYING", "COPYING.GPL"])],
     python_requires=">=3.6",
     install_requires=["flake8 >= 3.0.0"],
-    test_suite="tests.test_flake8_executable",
     classifiers=[
         "Environment :: Console",
         "Framework :: Flake8",
