@@ -90,8 +90,8 @@ class ExecutableChecker:
         self.lines = lines
 
     def run(self):
-        # Get lines
-        if not self.lines:
+        # Get lines if its not already read
+        if self.lines is None:
             with open(self.filename) as f:
                 self.lines = f.readlines()
 

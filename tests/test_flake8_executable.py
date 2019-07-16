@@ -101,6 +101,12 @@ class TestFlake8Executable:
         errors = __class__._run_checker_stdin_from_file(filename)
         assert not errors  # errors should be empty
 
+    @pytest.mark.parametrize("filename", ['-', 'stdin'])
+    def test_stdin_negative_empty(self, filename):
+        "Test empty input from stdin."
+        ec = ExecutableChecker(filename=filename, lines=[])
+        assert len(tuple(ec.run())) == 0
+
 
 if __name__ == "__main__":
     pytest.main([__file__])
