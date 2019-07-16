@@ -53,7 +53,7 @@ class EXE001(Error):
     @classmethod
     def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
         # Do not check on Windows or the input is not a file in the filesystem.
-        return os.name != 'nt' and filename is not None and filename != '-'
+        return os.name != 'nt' and filename is not None and filename not in ('-', 'stdin')
 
 
 class EXE002(Error):
@@ -63,7 +63,7 @@ class EXE002(Error):
     @classmethod
     def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
         # Do not check on Windows or the input is not a file in the filesystem.
-        return os.name != 'nt' and filename is not None and filename != '-'
+        return os.name != 'nt' and filename is not None and filename not in ('-', 'stdin')
 
 
 class EXE003(Error):
