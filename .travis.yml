@@ -13,8 +13,10 @@ matrix:
         python: "3.6"
       - name: "Python 3.7"
         python: "3.7"
+      - name: "Python 3.8"
+        python: "3.8"
       - name: "Lint"
         install: pip install flake8 flake8-bugbear flake8-comprehensions flake8-executable flake8-mypy flake8-pyi
         python:
-          - "3.7"
+          - "3.8"
         script: flake8
