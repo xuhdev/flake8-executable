@@ -23,22 +23,27 @@ from .version import __version__
 
 
 class Error(ABC):
-    "Base class of all errors."
+    """Base class of all errors.
 
-    def __init__(self, line_number, offset, error_code, message, check, **kwargs):
+    :param line_number: Line number of the error.
+    :param offset: Offset of the error.
+    :param error_code: Error code of the error.
+    :param message: Message of the error.
+    """
+
+    def __init__(self, line_number: int, offset: int, error_code: str, message: str):
         self.line_number = line_number
         self.offset = offset
         self.error_code = error_code
         self.message = message
-        self.check = check
 
     @staticmethod
-    def format_flake8(line_number, error_code, offset, message, check):
+    def format_flake8(line_number, error_code, offset, message):
         "Return a format of that Flake8 accepts."
-        return line_number, offset, '{} {}'.format(error_code, message), check
+        return line_number, offset, '{} {}'.format(error_code, message)
 
     def __call__(self):
-        return __class__.format_flake8(self.line_number, self.error_code, self.offset, self.message, self.check)
+        return __class__.format_flake8(self.line_number, self.error_code, self.offset, self.message)
 
     @classmethod
     def should_check(cls, **kwargs) -> bool:
@@ -48,7 +53,7 @@ class Error(ABC):
 
 class EXE001(Error):
     def __init__(self, line_number, **kwargs):
-        super().__init__(line_number, 0, 'EXE001', 'Shebang is present but the file is not executable.', '')
+        super().__init__(line_number, 0, 'EXE001', 'Shebang is present but the file is not executable.')
 
     @classmethod
     def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
@@ -58,7 +63,7 @@ class EXE001(Error):
 
 class EXE002(Error):
     def __init__(self, **kwargs):
-        super().__init__(0, 0, 'EXE002', 'The file is executable but no shebang is present.', '')
+        super().__init__(0, 0, 'EXE002', 'The file is executable but no shebang is present.')
 
     @classmethod
     def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
@@ -68,17 +73,17 @@ class EXE002(Error):
 
 class EXE003(Error):
     def __init__(self, line_number, shebang, **kwargs):
-        super().__init__(line_number, 0, 'EXE003', 'Shebang is present but does not contain "python": ' + shebang, '')
+        super().__init__(line_number, 0, 'EXE003', 'Shebang is present but does not contain "python": ' + shebang)
 
 
 class EXE004(Error):
     def __init__(self, line_number, offset, **kwargs):
-        super().__init__(line_number, offset, 'EXE004', 'There is whitespace before shebang.', '')
+        super().__init__(line_number, offset, 'EXE004', 'There is whitespace before shebang.')
 
 
 class EXE005(Error):
     def __init__(self, line_number, **kwargs):
-        super().__init__(line_number, 0, 'EXE005', 'There are blank or comment lines before shebang.', '')
+        super().__init__(line_number, 0, 'EXE005', 'There are blank or comment lines before shebang.')
 
 
 class ExecutableChecker:
