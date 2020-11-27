@@ -17,10 +17,13 @@
 
 
 from pathlib import Path
+import sys
 
 import pytest
 
 from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004, EXE005
+
+WIN32 = sys.platform.startswith("win")
 
 
 class TestFlake8Executable:
@@ -38,8 +41,9 @@ class TestFlake8Executable:
         return cls._python_files_folder / (error_code + '_neg.py')
 
     @pytest.mark.parametrize("error, error_code", [
-        (EXE001(line_number=1), 'exe001'),
-        (EXE002(), 'exe002'),
+        pytest.param(EXE001(line_number=1), 'exe001',
+                     marks=pytest.mark.skipif(WIN32, reason="Windows doesn't support EXE001")),
+        pytest.param(EXE002(), 'exe002', marks=pytest.mark.skipif(WIN32, reason="Windows doesn't support EXE002")),
         (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
         (EXE004(line_number=1, offset=4), 'exe004'),
         (EXE005(line_number=3), 'exe005')])
@@ -49,6 +53,17 @@ class TestFlake8Executable:
         ec = ExecutableChecker(filename=str(filename))
         errors = tuple(ec.run())
         assert errors == (error(),)
+
+    @pytest.mark.skipif(not WIN32, reason="Windows-only test.")
+    @pytest.mark.parametrize("error_code", [
+        'exe001',
+        'exe002'])
+    def test_exe_positive_others_but_negative_windows(self, error_code):
+        "Test cases in which an error should not be reported on Windows, while they are reported on Linux."
+        filename = __class__._get_pos_filename(error_code)
+        ec = ExecutableChecker(filename=str(filename))
+        errors = tuple(ec.run())
+        assert not errors  # errors should be empty
 
     @pytest.mark.parametrize("error_code", [
         'exe001',

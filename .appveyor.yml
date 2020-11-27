@@ -18,9 +18,12 @@
 
 environment:
   matrix:
-    # - TOXENV: py36
-    #   PYTHON_VERSION: 3.6
-    #   APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2013"
+    - TOXENV: py36
+      PYTHON_VERSION: 3.6
+      APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2013"
+    - TOXENV: py36
+      PYTHON_VERSION: 3.6
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
     - TOXENV: py37
       PYTHON_VERSION: 3.7
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
