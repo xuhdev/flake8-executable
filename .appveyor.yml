@@ -18,6 +18,9 @@
 
 environment:
   matrix:
+    - TOXENV: lint
+      PYTHON_VERSION: 3.9
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - TOXENV: py36
       PYTHON_VERSION: 3.6
       APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2013"
