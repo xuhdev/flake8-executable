@@ -18,6 +18,7 @@
 from abc import ABC
 import os
 import re
+from typing import Any, Iterable, List, Tuple, Optional, Union
 
 from .version import __version__
 
@@ -29,72 +30,80 @@ class Error(ABC):
     :param offset: Offset of the error.
     :param error_code: Error code of the error.
     :param message: Message of the error.
+    :param kwargs: Ignored. This is for the convenience of inheriting and calling super().__init__().
     """
 
-    def __init__(self, line_number: int, offset: int, error_code: str, message: str):
+    def __init__(self, line_number: int, offset: int, error_code: str, message: str, **kwargs: Any) -> None:
         self.line_number = line_number
         self.offset = offset
         self.error_code = error_code
         self.message = message
 
     @staticmethod
-    def format_flake8(line_number, error_code, offset, message):
+    def format_flake8(line_number: int, offset: int, error_code: str, message: str) -> Tuple[int, int, str]:
         "Return a format of that Flake8 accepts."
         return line_number, offset, '{} {}'.format(error_code, message)
 
-    def __call__(self):
-        return __class__.format_flake8(self.line_number, self.error_code, self.offset, self.message)
+    def __call__(self) -> Tuple[int, int, str]:
+        return self.__class__.format_flake8(self.line_number, self.offset, self.error_code, self.message)
 
     @classmethod
-    def should_check(cls, **kwargs) -> bool:
-        "Whether this error should be checked."
+    def should_check(cls, **kwargs: Any) -> bool:
+        """Whether this error should be checked. The base class currently will always return True but this can change,
+        so you should always check the return value of this function when overriding."""
         return True
 
 
 class EXE001(Error):
-    def __init__(self, line_number, **kwargs):
-        super().__init__(line_number, 0, 'EXE001', 'Shebang is present but the file is not executable.')
+    def __init__(self, line_number: int, **kwargs: Any) -> None:
+        super().__init__(line_number, 0, 'EXE001', 'Shebang is present but the file is not executable.', **kwargs)
 
     @classmethod
-    def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
+    def should_check(cls, filename: Union[os.PathLike, str], **kwargs: Any) -> bool:  # type: ignore[override]
         # Do not check on Windows or the input is not a file in the filesystem.
-        return os.name != 'nt' and filename is not None and filename not in ('-', 'stdin')
+        return (os.name != 'nt' and filename is not None and filename not in ('-', 'stdin') and
+                super().should_check(filename=filename, **kwargs))
 
 
 class EXE002(Error):
-    def __init__(self, **kwargs):
-        super().__init__(0, 0, 'EXE002', 'The file is executable but no shebang is present.')
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(0, 0, 'EXE002', 'The file is executable but no shebang is present.', **kwargs)
 
     @classmethod
-    def should_check(cls, filename, **kwargs) -> bool:  # noqa: T484
+    def should_check(cls, filename: Union[os.PathLike, str], **kwargs: Any) -> bool:  # type: ignore[override]
         # Do not check on Windows or the input is not a file in the filesystem.
-        return os.name != 'nt' and filename is not None and filename not in ('-', 'stdin')
+        return (os.name != 'nt' and filename is not None and filename not in ('-', 'stdin') and
+                super().should_check(filename=filename, **kwargs))
 
 
 class EXE003(Error):
-    def __init__(self, line_number, shebang, **kwargs):
-        super().__init__(line_number, 0, 'EXE003', 'Shebang is present but does not contain "python": ' + shebang)
+    def __init__(self, line_number: int, shebang: str, **kwargs: Any) -> None:
+        super().__init__(line_number, 0, 'EXE003', 'Shebang is present but does not contain "python": ' + shebang,
+                         **kwargs)
 
 
 class EXE004(Error):
-    def __init__(self, line_number, offset, **kwargs):
-        super().__init__(line_number, offset, 'EXE004', 'There is whitespace before shebang.')
+    def __init__(self, line_number: int, offset: int, **kwargs: Any):
+        super().__init__(line_number, offset, 'EXE004', 'There is whitespace before shebang.', **kwargs)
 
 
 class EXE005(Error):
-    def __init__(self, line_number, **kwargs):
-        super().__init__(line_number, 0, 'EXE005', 'There are blank or comment lines before shebang.')
+    def __init__(self, line_number: int, **kwargs: Any):
+        super().__init__(line_number, 0, 'EXE005', 'There are blank or comment lines before shebang.', **kwargs)
 
 
 class ExecutableChecker:
     name = 'flake8-executable'
     version = __version__
 
-    def __init__(self, tree=None, filename=None, lines=None):
+    def __init__(self,
+                 tree: None = None,  # This is for flake8
+                 filename: Union[os.PathLike, str] = '',
+                 lines: Optional[List[str]] = None) -> None:
         self.filename = filename
         self.lines = lines
 
-    def run(self):
+    def run(self) -> Optional[Iterable[Error]]:
         # Get lines if its not already read
         if self.lines is None:
             with open(self.filename) as f:
