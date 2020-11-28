@@ -2,7 +2,7 @@
 
 [![Pyversions](https://img.shields.io/pypi/pyversions/flake8-executable.svg?style=flat-square)](https://pypi.python.org/pypi/flake8-executable)
 ![PyPI](https://img.shields.io/pypi/v/flake8-executable.svg)
-[![Build Status](https://travis-ci.org/xuhdev/flake8-executable.svg?branch=master)](https://travis-ci.org/xuhdev/flake8-executable)
+[![Build Status](https://ci.appveyor.com/api/projects/status/h6mucl894w6dx7d0?svg=true)](https://ci.appveyor.com/project/xuhdev/flake8-executable)
 
 Very often, developers mess up the executable permissions and shebangs of Python files. For example,
 sometimes the executable permission was accidentally granted, sometimes it is forgotten.
