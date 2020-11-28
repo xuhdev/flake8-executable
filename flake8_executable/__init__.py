@@ -112,7 +112,7 @@ class ExecutableChecker:
 
         is_executable = os.access(self.filename, os.X_OK)
         if shebang_lineno is not None:
-            if not is_executable:
+            if not is_executable:  # pragma: no cover windows. No execution of this branch on Windows
                 if EXE001.should_check(filename=self.filename):
                     yield EXE001(line_number=shebang_lineno)()
             if 'python' not in shebang_line:
@@ -121,7 +121,7 @@ class ExecutableChecker:
             if shebang_lineno > 1:
                 if EXE005.should_check():
                     yield EXE005(line_number=shebang_lineno)()
-        elif is_executable:
+        elif is_executable:  # pragma: no cover windows. No execution of this branch on Windows
             # In principle, this error may also be yielded on empty
             # files, but flake8 seems to always skip empty files.
             if EXE002.should_check(filename=self.filename):

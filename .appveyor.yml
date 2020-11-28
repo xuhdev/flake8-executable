@@ -21,19 +21,19 @@ environment:
     - TOXENV: lint
       PYTHON_VERSION: 3.9
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - TOXENV: py36
+    - TOXENV: py36-windows
       PYTHON_VERSION: 3.6
       APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2013"
-    - TOXENV: py36
+    - TOXENV: py36-linux
       PYTHON_VERSION: 3.6
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
-    - TOXENV: py37
+    - TOXENV: py37-macos
       PYTHON_VERSION: 3.7
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
-    - TOXENV: py38
+    - TOXENV: py38-linux
       PYTHON_VERSION: 3.8
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - TOXENV: py39
+    - TOXENV: py39-linux
       PYTHON_VERSION: 3.9
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
 
