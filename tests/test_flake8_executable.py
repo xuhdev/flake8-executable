@@ -32,12 +32,13 @@ class TestFlake8Executable:
 
     @classmethod
     def _get_pos_filename(cls, error_code):
-        "Get the filename for which an error of error_code should be emitted."
+        "Get the filename for which an error of error_code should be emitted (on POSIX, Windows might be different)."
         return cls._python_files_folder / (error_code + '_pos.py')
 
     @classmethod
     def _get_neg_filename(cls, error_code):
-        "Get the filename for which an error of error_code should not be emitted."
+        """Get the filename for which an error of error_code should not be emitted (on POSIX, Windows might be
+        different)."""
         return cls._python_files_folder / (error_code + '_neg.py')
 
     @pytest.mark.parametrize("error, error_code", [
