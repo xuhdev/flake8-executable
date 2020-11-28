@@ -1,6 +1,8 @@
 __pycache__/
 .coverage
 .tox
+.eggs
 *.egg-info
 /build
 /dist
+/flake8_executable/_version.py

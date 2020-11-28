@@ -15,19 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with flake8-executable. If not, see <https://www.gnu.org/licenses/>.
 
+import pathlib
+
 from setuptools import setup
 
-from flake8_executable.version import __version__
-
-
-with open('README.md') as f:
-    long_description = f.read()
 
 setup(
     name="flake8-executable",
-    version=__version__,
     description="A Flake8 plugin for checking executable permissions and shebangs.",
-    long_description=long_description,
+    long_description=pathlib.Path('README.md').read_text(),
     long_description_content_type="text/markdown",
     keywords="flake8 linter qa",
     author="Hong Xu",
@@ -57,4 +53,6 @@ setup(
     entry_points={
         "flake8.extension": ["EXE00 = flake8_executable:ExecutableChecker"]
     },
+    use_scm_version={'write_to': 'flake8_executable/_version.py'},
+    setup_requires=['setuptools_scm']
 )
