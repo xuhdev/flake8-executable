@@ -1,0 +1,3 @@
+tox
+-r requirements/lint.txt
+-r requirements/test.txt
