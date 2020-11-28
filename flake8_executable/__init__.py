@@ -20,7 +20,17 @@ import os
 import re
 from typing import Any, Iterable, List, Tuple, Optional, Union
 
-from .version import __version__
+from ._version import version as __version__
+
+__all__ = ('__version__',
+           'ExcutableChecker',
+           # Error classes
+           'Error',
+           'EXE001',
+           'EXE002',
+           'EXE003',
+           'EXE004',
+           'EXE005')
 
 
 class Error(ABC):
