@@ -1,2 +1,2 @@
-coverage
-pytest >= 5.0.1
+coverage == 5.3
+pytest == 6.2.0
