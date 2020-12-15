@@ -50,11 +50,11 @@ class Error(ABC):
         self.message = message
 
     @staticmethod
-    def format_flake8(line_number: int, offset: int, error_code: str, message: str) -> Tuple[int, int, str]:
+    def format_flake8(line_number: int, offset: int, error_code: str, message: str) -> Tuple[int, int, str, str]:
         "Return a format of that Flake8 accepts."
-        return line_number, offset, '{} {}'.format(error_code, message)
+        return line_number, offset, '{} {}'.format(error_code, message), ''
 
-    def __call__(self) -> Tuple[int, int, str]:
+    def __call__(self) -> Tuple[int, int, str, str]:
         return self.__class__.format_flake8(self.line_number, self.offset, self.error_code, self.message)
 
     @classmethod
