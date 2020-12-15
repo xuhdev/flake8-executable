@@ -123,6 +123,13 @@ class TestFlake8Executable:
         ec = ExecutableChecker(filename=filename, lines=[])
         assert len(tuple(ec.run())) == 0
 
+    def test_cli(self):
+        "Test the flake8 CLI interface and ensure there's no crash."
+        import flake8.main.application
+
+        # The following line must not raise any exception
+        flake8.main.application.Application().run([str(self._python_files_folder)])
+
 
 if __name__ == "__main__":
     pytest.main([__file__])
