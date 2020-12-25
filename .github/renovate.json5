@@ -30,7 +30,7 @@
         "renovate"
     ],
 
-    "masterIssue": true,
+    "dependencyDashboard": true,
 
     "schedule": [
         "before 1am on Saturday"
