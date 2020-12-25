@@ -26,6 +26,12 @@
         "fileMatch": ["\.requirements.*\.txt$"]
     },
 
+    "labels": [
+        "renovate"
+    ],
+
+    "masterIssue": true,
+
     "schedule": [
         "before 1am on Saturday"
     ],
