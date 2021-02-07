@@ -38,11 +38,10 @@
 
     "packageRules": [
         {
-            "packagePatterns": [
+            "matchPackagePatterns": [
                 "*"
             ],
-            "updateTypes": [
-                "minor",
+            "matchUpdateTypes": [
                 "patch"
             ],
             "groupName": "all non-major dependencies",
