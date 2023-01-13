@@ -38,6 +38,9 @@ dynamic = ["version"]
 [project.urls]
 url="https://github.com/xuhdev/flake8-executable"
 
+[tool.setuptools.packages]
+find = {}
+
 [project.optional-dependencies]
 dev = [
     "flake8-executable[test]",
