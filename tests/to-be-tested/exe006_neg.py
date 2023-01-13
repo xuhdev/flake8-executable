@@ -1,4 +1,4 @@
 #!/usr/bin/python3
 
 if __name__ == "__main__":
-    print("Wrong shebang.")
+    print("I do have a main")

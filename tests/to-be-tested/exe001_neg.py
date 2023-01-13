@@ -1,2 +1,2 @@
-if __name__ == '__main__':
-    print('I should be executable.')
+if __name__ == "__main__":
+    print("I should be executable.")
