@@ -5,4 +5,4 @@ __pycache__/
 *.egg-info
 /build
 /dist
-/flake8_executable/_version.py
+/tests/.pytest_cache/
