@@ -1,8 +1,0 @@
-[coverage:run]
-source = flake8_executable
-
-[coverage:report]
-fail_under = 100
-show_missing = True
-exclude_lines =
-    pragma: no cover {platform}
