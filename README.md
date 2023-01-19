@@ -6,7 +6,8 @@
 [![Build Status](https://ci.appveyor.com/api/projects/status/h6mucl894w6dx7d0?svg=true)](https://ci.appveyor.com/project/xuhdev/flake8-executable)
 
 Very often, developers mess up the executable permissions and shebangs of Python files. For example,
-sometimes the executable permission was accidentally granted, sometimes it is forgotten.
+sometimes the executable permission was accidentally granted, sometimes it is forgotten. Moreover,
+this should be consistent with [Top-level code environment][] checks.
 
 This is a [Flake8][] plugin that ensures the executable permissions and shebangs of Python files are
 correctly set. Specifically, it checks the following errors:
@@ -16,6 +17,23 @@ correctly set. Specifically, it checks the following errors:
 - EXE003: Shebang is present but does not contain "python".
 - EXE004: There is whitespace before shebang.
 - EXE005: There are blank or comment lines before shebang.
+- EXE006: Found shebang, but no \_\_name\_\_ == '\_\_main\_\_' or \_\_main\_\_.py.
+- EXE007: The file is executable, but no \_\_name\_\_ == '\_\_main\_\_' or \_\_main\_\_.py.
+
+## Error codes overview
+
+| Shebang | Executable* | \_\_main\_\_ | Error code                          |
+|---------|-------------|--------------|-------------------------------------|
+| ✅       | ✅           | ✅            | Complete, no issues                 |
+| ✅       | ✅           | ❌            | EXE007                              |
+| ✅       | ❌           | ✅            | EXE001                              |
+| ✅       | ❌           | ❌            | EXE001, EXE006                      |
+| ❌       | ✅           | ✅            | EXE002                              |
+| ❌       | ✅           | ❌            | EXE002, EXE007                      |
+| ❌       | ❌           | ✅            | Shebang and executable are optional |
+| ❌       | ❌           | ❌            | No issue                            |
+
+(*) Executable bit is ignored on Windows
 
 ## Installation
 
@@ -30,7 +48,7 @@ details, check out the [Flake8 plugin page][].
 
 ## Copyright and License
 
-Copyright (c) 2019 Hong Xu <hong@topbug.net>
+Copyright (c) 2019 Hong Xu <hong@topbug.net>, 2023 Simon Brugman
 
 flake8-executable is free software: you can redistribute it and/or modify it under the terms of the
 GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of
@@ -47,3 +65,4 @@ flake8-executable. If not, see <https://www.gnu.org/licenses/>.
 
 [Flake8]: https://flake8.pycqa.org/
 [Flake8 plugin page]: https://flake8.pycqa.org/en/latest/user/using-plugins.html
+[Top-level code environment]: https://docs.python.org/3/library/__main__.html

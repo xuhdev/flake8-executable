@@ -1,0 +1,2 @@
+
+print("Executable without main")

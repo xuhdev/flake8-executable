@@ -1,4 +1,5 @@
 # Copyright (c) 2019 Hong Xu <hong@topbug.net>
+# Copyright (c) 2023 Simon Brugman
 
 # This file is part of flake8-executable.
 
@@ -16,115 +17,226 @@
 # along with flake8-executable. If not, see <https://www.gnu.org/licenses/>.
 
 
-from pathlib import Path
+import ast
 import sys
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 import pytest
 
-from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004, EXE005
+from flake8_executable import (
+    EXE001,
+    EXE002,
+    EXE003,
+    EXE004,
+    EXE005,
+    EXE006,
+    EXE007,
+    Error,
+    ExecutableChecker,
+)
 
 WIN32 = sys.platform.startswith("win")
 
 
 class TestFlake8Executable:
+    _python_files_folder = Path(__file__).absolute().parent / "to-be-tested"
 
-    _python_files_folder = Path(__file__).absolute().parent / 'to-be-tested'
+    def _get_filename(self, error_code: str) -> Path:
+        """Get the filename for the test file (on POSIX, Windows might be different)."""
+        return self._python_files_folder / (error_code + ".py")
 
-    @classmethod
-    def _get_pos_filename(cls, error_code):
-        "Get the filename for which an error of error_code should be emitted (on POSIX, Windows might be different)."
-        return cls._python_files_folder / (error_code + '_pos.py')
+    @pytest.mark.parametrize(
+        "test_name,main,executable,shebang,errors",
+        [
+            ("empty", False, WIN32, None, []),
+            ("__main__", True, WIN32, None, []),
+            ("main_off", False, WIN32, None, []),
+            pytest.param(
+                "exe001_pos",
+                True,
+                False,
+                (1, "#!/usr/bin/python", 0),
+                [EXE001(line_number=1)()],
+                marks=pytest.mark.skipif(
+                    WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            pytest.param(
+                "exe001_pos",
+                True,
+                True,
+                (1, "#!/usr/bin/python", 0),
+                [],
+                marks=pytest.mark.skipif(
+                    not WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            pytest.param(
+                "shebang_only",
+                False,
+                False,
+                (1, "#!/usr/bin/python", 0),
+                [EXE001(line_number=1)(), EXE006()()],
+                marks=pytest.mark.skipif(
+                    WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            pytest.param(
+                "shebang_only",
+                False,
+                True,
+                (1, "#!/usr/bin/python", 0),
+                [EXE006()()],
+                marks=pytest.mark.skipif(
+                    not WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            pytest.param(
+                "exe002_pos",
+                True,
+                True,
+                None,
+                [EXE002()()],
+                marks=pytest.mark.skipif(
+                    WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            pytest.param(
+                "exe002_pos",
+                True,
+                True,
+                None,
+                [],
+                marks=pytest.mark.skipif(
+                    not WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            (
+                "exe003_pos",
+                True,
+                True,
+                (1, "#!/bin/bash", 0),
+                [EXE003(line_number=1, shebang="#!/bin/bash")()],
+            ),
+            (
+                "exe004_pos",
+                True,
+                True,
+                (1, "    #!/usr/bin/python3", 4),
+                [EXE004(line_number=1, offset=4)()],
+            ),
+            (
+                "exe005_pos",
+                True,
+                True,
+                (3, "#!/usr/bin/python3", 0),
+                [EXE005(line_number=3)()],
+            ),
+            ("exe006_pos", False, True, (1, "#!/usr/bin/python3", 0), [EXE006()()]),
+            ("exe006_2_pos", False, True, (1, "#!/usr/bin/python3", 0), [EXE006()()]),
+            pytest.param(
+                "exe007_pos",
+                False,
+                True,
+                None,
+                [EXE002()(), EXE007()()],
+                marks=pytest.mark.skipif(
+                    WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            pytest.param(
+                "exe007_pos",
+                False,
+                True,
+                None,
+                [],
+                marks=pytest.mark.skipif(
+                    not WIN32, reason="Windows doesn't support EXE001"
+                ),
+            ),
+            ("exe001_neg", True, WIN32, None, []),
+            ("exe002_neg", True, WIN32, None, []),
+            ("exe003_neg", True, True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe004_neg", True, True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe005_neg", True, True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe006_neg", True, True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe006_2_neg", True, True, (1, "#!/usr/bin/python3", 0), []),
+        ],
+    )
+    def test_checker(
+        self,
+        test_name: str,
+        main: bool,
+        executable: bool,
+        shebang: Optional[Tuple[int, str, int]],
+        errors: List[Error],
+    ):
+        file_name = self._get_filename(test_name)
+        tree = ast.parse(file_name.read_text())
 
-    @classmethod
-    def _get_neg_filename(cls, error_code):
-        """Get the filename for which an error of error_code should not be emitted (on POSIX, Windows might be
-        different)."""
-        return cls._python_files_folder / (error_code + '_neg.py')
+        ec = ExecutableChecker(tree=tree, filename=str(file_name))
+        assert ec._check_main() == main
+        assert ec._check_shebang() == shebang
+        assert ec._check_executable() == executable
 
-    @pytest.mark.parametrize("error, error_code", [
-        pytest.param(EXE001(line_number=1), 'exe001',
-                     marks=pytest.mark.skipif(WIN32, reason="Windows doesn't support EXE001")),
-        pytest.param(EXE002(), 'exe002', marks=pytest.mark.skipif(WIN32, reason="Windows doesn't support EXE002")),
-        (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
-        (EXE004(line_number=1, offset=4), 'exe004'),
-        (EXE005(line_number=3), 'exe005')])
-    def test_exe_positive(self, error, error_code):
-        "Test cases in which an error should be reported."
-        filename = __class__._get_pos_filename(error_code)
-        ec = ExecutableChecker(filename=str(filename))
-        errors = tuple(ec.run())
-        assert errors == (error(),)
+        codes = list(ec.get_flake8_codes(main, shebang, executable))
+        assert codes == errors
 
-    @pytest.mark.skipif(not WIN32, reason="Windows-only test.")
-    @pytest.mark.parametrize("error_code", [
-        'exe001',
-        'exe002'])
-    def test_exe_positive_others_but_negative_windows(self, error_code):
-        "Test cases in which an error should not be reported on Windows, while they are reported on Linux."
-        filename = __class__._get_pos_filename(error_code)
-        ec = ExecutableChecker(filename=str(filename))
-        errors = tuple(ec.run())
-        assert not errors  # errors should be empty
+    @pytest.mark.parametrize(
+        "test_name,main,shebang,errors",
+        [
+            ("empty", False, None, []),
+            ("__main__", False, None, []),
+            ("main_off", False, None, []),
+            ("exe001_pos", True, (1, "#!/usr/bin/python", 0), []),
+            ("shebang_only", False, (1, "#!/usr/bin/python", 0), [EXE006()()]),
+            ("exe002_pos", True, None, []),
+            (
+                "exe003_pos",
+                True,
+                (1, "#!/bin/bash", 0),
+                [EXE003(line_number=1, shebang="#!/bin/bash")()],
+            ),
+            (
+                "exe004_pos",
+                True,
+                (1, "    #!/usr/bin/python3", 4),
+                [EXE004(line_number=1, offset=4)()],
+            ),
+            (
+                "exe005_pos",
+                True,
+                (3, "#!/usr/bin/python3", 0),
+                [EXE005(line_number=3)()],
+            ),
+            ("exe006_pos", False, (1, "#!/usr/bin/python3", 0), [EXE006()()]),
+            ("exe006_2_pos", False, (1, "#!/usr/bin/python3", 0), [EXE006()()]),
+            ("exe007_pos", False, None, []),
+            ("exe001_neg", True, None, []),
+            ("exe002_neg", True, None, []),
+            ("exe003_neg", True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe004_neg", True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe005_neg", True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe006_neg", True, (1, "#!/usr/bin/python3", 0), []),
+            ("exe006_2_neg", True, (1, "#!/usr/bin/python3", 0), []),
+        ],
+    )
+    def test_stdin(self, test_name, main, shebang, errors):
+        file_name = self._get_filename(test_name)
+        text = file_name.read_text()
+        lines = text.splitlines()
+        tree = ast.parse(text)
 
-    @pytest.mark.parametrize("error_code", [
-        'exe001',
-        'exe002',
-        'exe003',
-        'exe004',
-        'exe005'])
-    def test_exe_negative(self, error_code):
-        "Test cases in which no error should be reported."
-        filename = __class__._get_neg_filename(error_code)
-        ec = ExecutableChecker(filename=str(filename))
-        errors = tuple(ec.run())
-        assert not errors  # errors should be empty
+        ec = ExecutableChecker(tree=tree, filename="-", lines=lines)
+        assert ec._check_main() == main
+        assert ec._check_shebang() == shebang
 
-    @staticmethod
-    def _run_checker_stdin_from_file(filename):
-        with open(filename) as f:
-            lines = f.readlines()
-        ec = ExecutableChecker(filename='-', lines=lines)
-        return tuple(ec.run())
-
-    @pytest.mark.parametrize("error, error_code", [
-        (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
-        (EXE004(line_number=1, offset=4), 'exe004'),
-        (EXE005(line_number=3), 'exe005')])
-    def test_stdin_positive(self, error, error_code):
-        "Test case in which an error should be reported (input is stdin)."
-        filename = __class__._get_pos_filename(error_code)
-        errors = __class__._run_checker_stdin_from_file(filename)
-        assert errors == (error(),)
-
-    @pytest.mark.parametrize("error_code", [
-        'exe001',
-        'exe002',
-        'exe003',
-        'exe004',
-        'exe005'])
-    def test_stdin_negative(self, error_code):
-        "Test cases in which no error should be reported (input is stdin)."
-        filename = __class__._get_neg_filename(error_code)
-        errors = __class__._run_checker_stdin_from_file(filename)
-        assert not errors  # errors should be empty
-
-    @pytest.mark.parametrize("error_code", [
-        'exe001',
-        'exe002'])
-    def test_stdin_negative_otherwise_positive(self, error_code):
-        "Test errors that should not be emitted when the input is from stdin, even if they should be otherwise emitted."
-        filename = __class__._get_pos_filename(error_code)
-        errors = __class__._run_checker_stdin_from_file(filename)
-        assert not errors  # errors should be empty
-
-    @pytest.mark.parametrize("filename", ['-', 'stdin'])
-    def test_stdin_negative_empty(self, filename):
-        "Test empty input from stdin."
-        ec = ExecutableChecker(filename=filename, lines=[])
-        assert len(tuple(ec.run())) == 0
+        codes = list(ec.get_flake8_codes(main, shebang, False))
+        assert codes == errors
 
     def test_cli(self):
-        "Test the flake8 CLI interface and ensure there's no crash."
+        """Test the flake8 CLI interface and ensure there's no crash."""
         import flake8.main.application
 
         # The following line must not raise any exception
