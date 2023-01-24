@@ -26,6 +26,10 @@
         "fileMatch": ["requirements.*\.txt$"]
     },
 
+    "pre-commit": {
+        "enabled": true
+    },
+
     "labels": [
         "renovate"
     ],
