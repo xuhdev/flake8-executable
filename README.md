@@ -23,6 +23,18 @@ Run:
 
     pip install flake8-executable
 
+Or through `pre-commit` with the `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+-   repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0  # replace with the latest flake8 release
+    hooks:
+    -   id: flake8
+        additional_dependencies:
+        - flake8-executable
+```
+
 ## Usage
 
 Normally, after flake8-executable is installed, invoking flake8 will also run this plugin. For more
