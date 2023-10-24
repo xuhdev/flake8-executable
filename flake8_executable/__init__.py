@@ -30,7 +30,8 @@ __all__ = ('__version__',
            'EXE002',
            'EXE003',
            'EXE004',
-           'EXE005')
+           'EXE005',
+           'EXE006')
 
 
 class Error(ABC):
@@ -102,6 +103,11 @@ class EXE005(Error):
         super().__init__(line_number, 0, 'EXE005', 'There are blank or comment lines before shebang.', **kwargs)
 
 
+class EXE006(Error):
+    def __init__(self, line_number: int, shebang: str, **kwargs: Any):
+        super().__init__(line_number, 0, 'EXE006', 'Shebang is present but it hard-codes the path to python.', **kwargs)
+
+
 class ExecutableChecker:
     name = 'flake8-executable'
     version = __version__
@@ -124,7 +130,7 @@ class ExecutableChecker:
             m = re.match(r'(\s*)#!', line)
             if m:  # shebang found
                 shebang_lineno = i
-                shebang_line = line
+                shebang_line = line.strip()
                 if m.group(1):
                     if EXE004.should_check():
                         yield EXE004(line_number=shebang_lineno, offset=len(m.group(1)))()
@@ -139,12 +145,15 @@ class ExecutableChecker:
             if not is_executable:  # pragma: no cover windows. No execution of this branch on Windows
                 if EXE001.should_check(filename=self.filename):
                     yield EXE001(line_number=shebang_lineno)()
-            if 'python' not in shebang_line:
-                if EXE003.should_check():
-                    yield EXE003(line_number=shebang_lineno, shebang=shebang_line.strip())()
-            if shebang_lineno > 1:
-                if EXE005.should_check():
-                    yield EXE005(line_number=shebang_lineno)()
+
+            if EXE003.should_check() and 'python' not in shebang_line:
+                yield EXE003(line_number=shebang_lineno, shebang=shebang_line)()
+            elif EXE006.should_check() and shebang_line[2:].split()[0] != "/usr/bin/env":
+                yield EXE006(line_number=shebang_lineno, shebang=shebang_line)()
+
+            if EXE005.should_check() and shebang_lineno > 1:
+                yield EXE005(line_number=shebang_lineno)()
+
         elif is_executable:  # pragma: no cover windows. No execution of this branch on Windows
             # In principle, this error may also be yielded on empty
             # files, but flake8 seems to always skip empty files.

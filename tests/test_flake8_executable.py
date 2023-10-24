@@ -21,7 +21,7 @@ import sys
 
 import pytest
 
-from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004, EXE005
+from flake8_executable import ExecutableChecker, EXE001, EXE002, EXE003, EXE004, EXE005, EXE006
 
 WIN32 = sys.platform.startswith("win")
 
@@ -47,7 +47,8 @@ class TestFlake8Executable:
         pytest.param(EXE002(), 'exe002', marks=pytest.mark.skipif(WIN32, reason="Windows doesn't support EXE002")),
         (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
         (EXE004(line_number=1, offset=4), 'exe004'),
-        (EXE005(line_number=3), 'exe005')])
+        (EXE005(line_number=3), 'exe005'),
+        (EXE006(line_number=1, shebang='#!/usr/bin/python'), 'exe006')])
     def test_exe_positive(self, error, error_code):
         "Test cases in which an error should be reported."
         filename = __class__._get_pos_filename(error_code)
@@ -71,7 +72,8 @@ class TestFlake8Executable:
         'exe002',
         'exe003',
         'exe004',
-        'exe005'])
+        'exe005',
+        'exe006'])
     def test_exe_negative(self, error_code):
         "Test cases in which no error should be reported."
         filename = __class__._get_neg_filename(error_code)
@@ -89,7 +91,8 @@ class TestFlake8Executable:
     @pytest.mark.parametrize("error, error_code", [
         (EXE003(line_number=1, shebang='#!/bin/bash'), 'exe003'),
         (EXE004(line_number=1, offset=4), 'exe004'),
-        (EXE005(line_number=3), 'exe005')])
+        (EXE005(line_number=3), 'exe005'),
+        (EXE006(line_number=1, shebang='#!/usr/bin/python'), 'exe006')])
     def test_stdin_positive(self, error, error_code):
         "Test case in which an error should be reported (input is stdin)."
         filename = __class__._get_pos_filename(error_code)
