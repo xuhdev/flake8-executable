@@ -1,5 +1,5 @@
 bandit==1.7.4
 flake8==6.0.0
 flake8-bugbear==21.11.29
-flake8-comprehensions==3.10.1
+flake8-comprehensions==3.15.0
 mypy==0.991
