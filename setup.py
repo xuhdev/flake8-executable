@@ -31,7 +31,6 @@ setup(
     url="https://github.com/xuhdev/flake8-executable",
     license='LGPL v3+',
     packages=["flake8_executable"],
-    data_files=[("", ["COPYING", "COPYING.GPL"])],
     python_requires=">=3.6",
     install_requires=["flake8 >= 3.0.0"],
     classifiers=[
