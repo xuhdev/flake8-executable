@@ -40,6 +40,25 @@ repos:
 Normally, after flake8-executable is installed, invoking flake8 will also run this plugin. For more
 details, check out the [Flake8 plugin page][].
 
+### Nix-shell scripts
+
+EXE003 also accepts a `nix-shell` shebang when its option lines select a Python
+interpreter with `-i`, as described in the [Nix reference manual][nix-shell]:
+
+```python
+#!/usr/bin/env nix-shell
+#! nix-shell -i python3
+#! nix-shell --packages python3
+print("Hello world")
+```
+
+The first line selects `nix-shell`; the subsequent directives provide its interpreter
+and dependencies. Merely including a Python package without selecting a Python
+interpreter does not suppress EXE003. The file must still have executable permission
+to satisfy EXE001.
+
+[nix-shell]: https://nix.dev/manual/nix/stable/command-ref/nix-shell.html#use-as-a--interpreter
+
 ## Copyright and License
 
 Copyright (c) 2019 Hong Xu <hong@topbug.net>
