@@ -1,4 +1,6 @@
 bandit==1.7.4
+# Bandit 1.7.4 imports pbr but does not declare it as a dependency.
+pbr==5.11.1
 flake8==6.0.0
 flake8-bugbear==21.11.29
 flake8-comprehensions==3.10.1
