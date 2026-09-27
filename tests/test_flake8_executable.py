@@ -123,6 +123,57 @@ class TestFlake8Executable:
         ec = ExecutableChecker(filename=filename, lines=[])
         assert len(tuple(ec.run())) == 0
 
+    @pytest.mark.parametrize('shebang', [
+        '#!/usr/bin/env nix-shell',
+        '#! /usr/bin/env nix-shell',
+        '#!/nix/var/nix/profiles/default/bin/nix-shell',
+    ])
+    @pytest.mark.parametrize('options', [
+        '#! nix-shell -i python3 --packages python3',
+        '#!nix-shell -i python3\n#!nix-shell --packages python3',
+        '#! nix-shell --packages python3\n#! nix-shell -i "python3"',
+        "#! nix-shell -i python3 -p 'python3.withPackages (ps: [ ps.requests ])'",
+    ])
+    def test_nix_shell_python(self, shebang, options):
+        lines = (shebang + '\n' + options + '\nprint("hello")\n').splitlines(True)
+        assert tuple(ExecutableChecker(filename='-', lines=lines).run()) == ()
+
+    @pytest.mark.parametrize('options', [
+        '',
+        '#! nix-shell --packages python3',
+        '#! nix-shell -i bash --packages python3',
+        '#! nix-shell -i python3\n#! nix-shell -i bash',
+        '#! nix-shell -i',
+        '#! nix-shell -i "python3',
+        '# ordinary comment mentioning -i python3',
+    ])
+    def test_nix_shell_without_python_interpreter(self, options):
+        shebang = '#!/usr/bin/env nix-shell'
+        lines = (shebang + '\n' + options + '\n').splitlines(True)
+        assert tuple(ExecutableChecker(filename='-', lines=lines).run()) == (
+            EXE003(line_number=1, shebang=shebang)(),
+        )
+
+    @pytest.mark.parametrize('shebang', ['#!/bin/bash', '#!/usr/bin/env nix-shell-wrapper'])
+    def test_nix_shell_options_require_nix_shell_shebang(self, shebang):
+        lines = [shebang + '\n', '#! nix-shell -i python3\n']
+        assert tuple(ExecutableChecker(filename='-', lines=lines).run()) == (
+            EXE003(line_number=1, shebang=shebang)(),
+        )
+
+    def test_nix_shell_misplaced_shebang(self):
+        lines = ['# comment\n', '#!/usr/bin/env nix-shell\n', '#! nix-shell -i python3\n']
+        assert tuple(ExecutableChecker(filename='-', lines=lines).run()) == (EXE005(line_number=2)(),)
+
+    @pytest.mark.skipif(WIN32, reason="Windows doesn't support EXE001")
+    @pytest.mark.parametrize('executable', [True, False])
+    def test_nix_shell_permissions(self, tmp_path, executable):
+        script = tmp_path / 'script.py'
+        script.write_text('#!/usr/bin/env nix-shell\n#! nix-shell -i python3\n')
+        script.chmod(0o755 if executable else 0o644)
+        errors = tuple(ExecutableChecker(filename=str(script)).run())
+        assert errors == (() if executable else (EXE001(line_number=1)(),))
+
     def test_cli(self):
         "Test the flake8 CLI interface and ensure there's no crash."
         import flake8.main.application

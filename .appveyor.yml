@@ -21,35 +21,34 @@ environment:
     - TOXENV: lint
       PYTHON_VERSION: 3.10
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
-    - TOXENV: py39
+    - TOXENV: py39-windows
       PYTHON_VERSION: 3.9
       APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2019"
-    - TOXENV: py37
-      PYTHON_VERSION: 3.7
+    - TOXENV: py311-macos
+      PYTHON_VERSION: 3.11
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
-    - TOXENV: py38
+    - TOXENV: py38-linux
       PYTHON_VERSION: 3.8
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
-    - TOXENV: py39
+    - TOXENV: py39-linux
       PYTHON_VERSION: 3.9
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
-    - TOXENV: py310
+    - TOXENV: py310-linux
       PYTHON_VERSION: 3.10
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
-    - TOXENV: py311
+    - TOXENV: py311-linux
       PYTHON_VERSION: 3.11
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
 
 build: false
 
 install:
-  # AppVeyor requires us to manually source a virtualenv for non-Windows tests. This line is allowed to fail (and should
-  # fail) on Windows images.
-  - source ~/venv${PYTHON_VERSION}/bin/activate || (exit 0)
-  - pip install -U tox
+  - sh: source ~/venv${PYTHON_VERSION}/bin/activate
+  - cmd: set PATH=C:\Python39;C:\Python39\Scripts;%PATH%
+  - python -m pip install -U tox
 
 test_script:
-  - tox -vv
+  - python -m tox -vv
 
 branches:
   only:

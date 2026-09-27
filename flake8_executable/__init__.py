@@ -18,6 +18,7 @@
 from abc import ABC
 import os
 import re
+import shlex
 from typing import Any, Iterable, List, Tuple, Optional, Union
 
 from ._version import version as __version__  # type: ignore
@@ -113,6 +114,28 @@ class ExecutableChecker:
         self.filename = filename
         self.lines = lines
 
+    @staticmethod
+    def _nix_shell_uses_python(shebang: str, lines: List[str]) -> bool:
+        if not re.match(r'^\s*#!\s*(?:\S*/)?(?:env\s+)?nix-shell(?:\s|$)', shebang):
+            return False
+
+        # nix-shell combines options from all of its directive lines, with the last -i taking effect.
+        args: List[str] = []
+        for line in lines:
+            match = re.match(r'^#!\s*nix-shell\s+(.*)$', line)
+            if match:
+                try:
+                    args.extend(shlex.split(match.group(1)))
+                except ValueError:
+                    return False
+
+        interpreter = ''
+        arguments = iter(args)
+        for argument in arguments:
+            if argument == '-i':
+                interpreter = next(arguments, '')
+        return 'python' in interpreter
+
     def run(self) -> Optional[Iterable[Error]]:
         # Get lines if its not already read
         if self.lines is None:
@@ -139,7 +162,7 @@ class ExecutableChecker:
             if not is_executable:  # pragma: no cover windows. No execution of this branch on Windows
                 if EXE001.should_check(filename=self.filename):
                     yield EXE001(line_number=shebang_lineno)()
-            if 'python' not in shebang_line:
+            if 'python' not in shebang_line and not self._nix_shell_uses_python(shebang_line, self.lines):
                 if EXE003.should_check():
                     yield EXE003(line_number=shebang_lineno, shebang=shebang_line.strip())()
             if shebang_lineno > 1:
